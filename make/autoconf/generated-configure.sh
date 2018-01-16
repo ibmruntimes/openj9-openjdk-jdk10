@@ -900,10 +900,6 @@ VERSION_PATCH
 VERSION_UPDATE
 VERSION_INTERIM
 VERSION_FEATURE
-<<<<<<< HEAD
-=======
-COMPANY_NAME
->>>>>>> 127d04479aa95f9442f189e3c5fdc13b4a45ca33
 MACOSX_BUNDLE_ID_BASE
 MACOSX_BUNDLE_NAME_BASE
 HOTSPOT_VM_DISTRO
@@ -1149,10 +1145,6 @@ with_build_number
 with_version_major
 with_version_minor
 with_version_security
-<<<<<<< HEAD
-=======
-with_vendor_name
->>>>>>> 127d04479aa95f9442f189e3c5fdc13b4a45ca33
 with_version_string
 with_version_pre
 with_version_opt
@@ -2088,10 +2080,6 @@ Optional Packages:
                           compatibility and is ignored
   --with-version-security Deprecated. Option is kept for backwards
                           compatibility and is ignored
-<<<<<<< HEAD
-=======
-  --with-vendor-name      Set vendor name [not specified]
->>>>>>> 127d04479aa95f9442f189e3c5fdc13b4a45ca33
   --with-version-string   Set version string [calculated]
   --with-version-pre      Set the base part of the version 'PRE' field
                           (pre-release identifier) ['internal']
@@ -5193,11 +5181,7 @@ VS_SDK_PLATFORM_NAME_2013=
 #CUSTOM_AUTOCONF_INCLUDE
 
 # Do not change or remove the following line, it is needed for consistency checks:
-<<<<<<< HEAD
 DATE_WHEN_GENERATED=1513206608
-=======
-DATE_WHEN_GENERATED=1513805283
->>>>>>> 127d04479aa95f9442f189e3c5fdc13b4a45ca33
 
 ###############################################################################
 #
