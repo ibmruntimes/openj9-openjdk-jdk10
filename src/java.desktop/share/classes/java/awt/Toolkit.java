@@ -673,14 +673,11 @@ public abstract class Toolkit {
      * <p>
      * This method first checks if there is a security manager installed.
      * If so, the method calls the security manager's
-     * {@code checkPermission} method with the
-     * url.openConnection().getPermission() permission to ensure
-     * that the access to the image is allowed. For compatibility
-     * with pre-1.2 security managers, if the access is denied with
-     * {@code FilePermission} or {@code SocketPermission},
-     * the method throws the {@code SecurityException}
-     * if the corresponding 1.1-style SecurityManager.checkXXX method
-     * also denies permission.
+     * {@code checkPermission} method with the corresponding
+     * permission to ensure that the access to the image is allowed.
+     * If the connection to the specified URL requires
+     * either {@code URLPermission} or {@code SocketPermission},
+     * then {@code URLPermission} is used for security checks.
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
@@ -717,14 +714,11 @@ public abstract class Toolkit {
      * <p>
      * This method first checks if there is a security manager installed.
      * If so, the method calls the security manager's
-     * {@code checkPermission} method with the
-     * url.openConnection().getPermission() permission to ensure
-     * that the image creation is allowed. For compatibility
-     * with pre-1.2 security managers, if the access is denied with
-     * {@code FilePermission} or {@code SocketPermission},
-     * the method throws {@code SecurityException}
-     * if the corresponding 1.1-style SecurityManager.checkXXX method
-     * also denies permission.
+     * {@code checkPermission} method with the corresponding
+     * permission to ensure that the image creation is allowed.
+     * If the connection to the specified URL requires
+     * either {@code URLPermission} or {@code SocketPermission},
+     * then {@code URLPermission} is used for security checks.
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
