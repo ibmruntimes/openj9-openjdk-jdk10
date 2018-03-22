@@ -149,8 +149,8 @@ module java.base {
     exports jdk.internal.org.objectweb.asm to
         jdk.jartool,
         jdk.jlink,
-        jdk.scripting.nashorn,
-        jdk.internal.vm.ci;
+        jdk.scripting.nashorn;
+//        jdk.internal.vm.ci;
     exports jdk.internal.org.objectweb.asm.tree to
         jdk.jlink;
     exports jdk.internal.org.objectweb.asm.util to
@@ -180,8 +180,8 @@ module java.base {
         jdk.net,
         jdk.scripting.nashorn,
         jdk.scripting.nashorn.shell,
-        jdk.unsupported,
-        jdk.internal.vm.ci;
+        jdk.unsupported;
+//        jdk.internal.vm.ci;
     exports jdk.internal.module to
         java.instrument,
         java.management.rmi,
@@ -207,7 +207,7 @@ module java.base {
         jdk.internal.jvmstat;
     exports jdk.internal.vm.annotation to
         jdk.unsupported,
-        jdk.internal.vm.ci,
+//        jdk.internal.vm.ci,
         jdk.incubator.httpclient;
     exports jdk.internal.util.jar to
         jdk.jartool;

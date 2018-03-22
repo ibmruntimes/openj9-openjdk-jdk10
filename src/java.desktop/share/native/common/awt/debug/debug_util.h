@@ -41,7 +41,6 @@ typedef int dbool_t;
 
 typedef void * dmutex_t;
 
-#include "jvm.h"
 #include "jni.h"
 #include "jni_util.h"
 #include "jvm.h"
