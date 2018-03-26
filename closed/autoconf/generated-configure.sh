@@ -5220,7 +5220,7 @@ VS_SDK_PLATFORM_NAME_2013=
 # definitions. It is replaced with custom functionality when building
 # custom sources.
 # ===========================================================================
-# (c) Copyright IBM Corp. 2017 All Rights Reserved
+# (c) Copyright IBM Corp. 2017, 2018 All Rights Reserved
 # ===========================================================================
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -5258,7 +5258,7 @@ VS_SDK_PLATFORM_NAME_2013=
 
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1522080300
+DATE_WHEN_GENERATED=1522093539
 
 ###############################################################################
 #
@@ -17205,7 +17205,7 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
 
 
   OPENJDK_SHA=`git -C $TOPDIR rev-parse --short HEAD`
-  OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags "${OPENJDK_SHA}"`
+  OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags --match "jdk-10*" "${OPENJDK_SHA}"`
 
 
 
