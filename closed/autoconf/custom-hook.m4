@@ -1,5 +1,5 @@
 # ===========================================================================
-# (c) Copyright IBM Corp. 2017 All Rights Reserved
+# (c) Copyright IBM Corp. 2017, 2018 All Rights Reserved
 # ===========================================================================
 #
 # This code is free software; you can redistribute it and/or modify it
@@ -163,7 +163,7 @@ AC_DEFUN_ONCE([OPENJ9_PLATFORM_SETUP],
 AC_DEFUN_ONCE([OPENJDK_VERSION_DETAILS],
 [
   OPENJDK_SHA=`git -C $TOPDIR rev-parse --short HEAD`
-  OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags "${OPENJDK_SHA}"`
+  OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags --match "jdk-10*" "${OPENJDK_SHA}"`
   AC_SUBST(OPENJDK_SHA)
   AC_SUBST(OPENJDK_TAG)
 ])
