@@ -967,6 +967,7 @@ OPENJ9_CUDA_HOME
 OPENJ9_ENABLE_CUDA
 OPENJDK_TAG
 OPENJDK_SHA
+OPENJ9_LIBS_SUBDIR
 COMPILER_VERSION_STRING
 OPENJ9_PLATFORM_CODE
 OPENJ9_BUILDSPEC
@@ -5258,7 +5259,7 @@ VS_SDK_PLATFORM_NAME_2013=
 
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1522093539
+DATE_WHEN_GENERATED=1522097039
 
 ###############################################################################
 #
@@ -17159,7 +17160,7 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
 
 
   # Convert openjdk cpu names to openj9 names
-  case "$build_cpu" in
+  case "$host_cpu" in
     x86_64)
       OPENJ9_CPU=x86-64
       ;;
@@ -17173,11 +17174,12 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
       OPENJ9_CPU=ppc-64
       ;;
     *)
-      as_fn_error $? "unsupported OpenJ9 cpu $build_cpu" "$LINENO" 5
+      as_fn_error $? "unsupported OpenJ9 cpu $host_cpu" "$LINENO" 5
       ;;
   esac
 
   OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}_cmprssptrs"
+  OPENJ9_LIBS_SUBDIR=compressedrefs
 
   if test "x$OPENJ9_CPU" = xx86-64; then
     if test "x$OPENJDK_BUILD_OS" = xlinux; then
@@ -17198,6 +17200,7 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
   else
     as_fn_error $? "Unsupported OpenJ9 cpu ${OPENJ9_CPU}, contact support team!" "$LINENO" 5
   fi
+
 
 
 
