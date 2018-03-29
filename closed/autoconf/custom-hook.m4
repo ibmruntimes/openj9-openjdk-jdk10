@@ -1,7 +1,6 @@
 # ===========================================================================
 # (c) Copyright IBM Corp. 2017, 2018 All Rights Reserved
 # ===========================================================================
-#
 # This code is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 only, as
 # published by the Free Software Foundation.
@@ -14,7 +13,6 @@
 #
 # You should have received a copy of the GNU General Public License version
 # 2 along with this work; if not, see <http://www.gnu.org/licenses/>.
-#
 # ===========================================================================
 
 AC_DEFUN_ONCE([CUSTOM_EARLY_HOOK],
@@ -41,6 +39,7 @@ AC_DEFUN_ONCE([CUSTOM_EARLY_HOOK],
   OPENJ9_PLATFORM_SETUP
   OPENJDK_VERSION_DETAILS
   OPENJ9_CONFIGURE_CUDA
+  OPENJ9_CONFIGURE_DDR
   OPENJ9_CONFIGURE_NUMA
   OPENJ9_THIRD_PARTY_REQUIREMENTS
 ])
@@ -106,6 +105,34 @@ AC_DEFUN([OPENJ9_CONFIGURE_CUDA],
   AC_SUBST(OPENJ9_ENABLE_CUDA)
   AC_SUBST(OPENJ9_CUDA_HOME)
   AC_SUBST(OPENJ9_GDK_HOME)
+])
+
+AC_DEFUN([OPENJ9_CONFIGURE_DDR],
+[
+  AC_MSG_CHECKING([for ddr])
+  AC_ARG_ENABLE([ddr], [AS_HELP_STRING([--enable-ddr], [enable DDR support @<:@disabled@:>@])])
+  if test "x$enable_ddr" = xyes ; then
+    AC_MSG_RESULT([yes (explicitly enabled)])
+    OPENJ9_ENABLE_DDR=true
+  elif test "x$enable_ddr" = xno ; then
+    AC_MSG_RESULT([no (explicitly disabled)])
+    OPENJ9_ENABLE_DDR=false
+  elif test "x$enable_ddr" = x ; then
+    case "$OPENJ9_PLATFORM_CODE" in
+      xa64|xl64|xz64)
+        AC_MSG_RESULT([yes (default for $OPENJ9_PLATFORM_CODE)])
+        OPENJ9_ENABLE_DDR=true
+        ;;
+      *)
+        AC_MSG_RESULT([no (default for $OPENJ9_PLATFORM_CODE)])
+        OPENJ9_ENABLE_DDR=false
+        ;;
+    esac
+  else
+    AC_MSG_ERROR([--enable-ddr accepts no argument])
+  fi
+
+  AC_SUBST(OPENJ9_ENABLE_DDR)
 ])
 
 AC_DEFUN([OPENJ9_PLATFORM_EXTRACT_VARS_FROM_CPU],
