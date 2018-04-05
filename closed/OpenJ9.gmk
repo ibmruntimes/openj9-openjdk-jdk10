@@ -365,7 +365,7 @@ run-preprocessors-j9 : stage-j9 \
 		$(OUTPUTDIR)/vm/compiler/jit.version \
 		$(OUTPUTDIR)/vm/include/openj9_version_info.h
 	@$(ECHO) Running OpenJ9 preprocessors with OPENJ9_BUILDSPEC: $(OPENJ9_BUILDSPEC)
-	(export BOOT_JDK=$(BOOT_JDK) \
+	(export BOOT_JDK=$(BOOT_JDK) $(EXPORT_MSVS_ENV_VARS) \
 		&& cd $(OUTPUTDIR)/vm \
 		&& $(MAKE) $(MAKEFLAGS) -f buildtools.mk \
 			BUILD_ID=$(BUILD_ID) \
@@ -382,7 +382,7 @@ run-preprocessors-j9 : stage-j9 \
 
 build-j9 : run-preprocessors-j9
 	@$(ECHO) Compiling OpenJ9 in $(OUTPUTDIR)/vm
-	(export OPENJ9_BUILD=true $(EXPORT_NO_USE_MINGW) \
+	(export OPENJ9_BUILD=true $(EXPORT_NO_USE_MINGW) $(EXPORT_MSVS_ENV_VARS) \
 		&& cd $(OUTPUTDIR)/vm \
 		&& $(MAKE) $(MAKEFLAGS) all \
 	)

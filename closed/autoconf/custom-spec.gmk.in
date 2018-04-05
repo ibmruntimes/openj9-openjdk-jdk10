@@ -62,3 +62,10 @@ OPENJ9_BUILDSPEC        := @OPENJ9_BUILDSPEC@
 OPENJ9_PLATFORM_CODE    := @OPENJ9_PLATFORM_CODE@
 
 OPENJ9_LIBS_SUBDIR      := @OPENJ9_LIBS_SUBDIR@
+
+ifeq ($(OPENJDK_TARGET_OS), windows)
+  # Set environment variables for Microsoft Visual Studio toolchain.
+  # Note that PATH is set in spec.gmk.
+  export INCLUDE := "@VS_INCLUDE@"
+  export LIB := "@VS_LIB@"
+endif
