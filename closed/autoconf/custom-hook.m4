@@ -157,6 +157,9 @@ AC_DEFUN([OPENJ9_PLATFORM_EXTRACT_VARS_FROM_CPU],
     powerpc64)
       OPENJ9_CPU=ppc-64
       ;;
+    arm)
+      OPENJ9_CPU=arm
+      ;;
     *)
       AC_MSG_ERROR([unsupported OpenJ9 cpu $1])
       ;;
@@ -185,6 +188,10 @@ AC_DEFUN_ONCE([OPENJ9_PLATFORM_SETUP],
     OPENJ9_PLATFORM_CODE=xz64
   elif test "x$OPENJ9_CPU" = xppc-64; then
     OPENJ9_PLATFORM_CODE=ap64
+  elif test "x$OPENJ9_CPU" = xarm; then
+    OPENJ9_PLATFORM_CODE=xr32
+    OPENJ9_BUILDSPEC=linux_arm_linaro
+    OPENJ9_LIBS_SUBDIR=default
   else
     AC_MSG_ERROR([Unsupported OpenJ9 cpu ${OPENJ9_CPU}, contact support team!])
   fi
