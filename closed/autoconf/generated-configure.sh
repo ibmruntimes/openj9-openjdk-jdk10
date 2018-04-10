@@ -966,6 +966,8 @@ OPENJ9_ENABLE_DDR
 OPENJ9_GDK_HOME
 OPENJ9_CUDA_HOME
 OPENJ9_ENABLE_CUDA
+OPENJ9_ENABLE_CMAKE
+CMAKE
 OPENJDK_TAG
 OPENJDK_SHA
 OPENJ9_LIBS_SUBDIR
@@ -1139,6 +1141,7 @@ enable_debug
 with_debug_level
 with_jvm_variants
 with_cpu_port
+with_cmake
 with_cuda
 with_gdk
 enable_cuda
@@ -2066,6 +2069,7 @@ Optional Packages:
                           (server,client,minimal,core,zero,custom) [server]
   --with-cpu-port         specify sources to use for Hotspot 64-bit ARM port
                           (arm64,aarch64) [aarch64]
+  --with-cmake            enable building openJ9 with CMake
   --with-cuda             use this directory as CUDA_HOME
   --with-gdk              use this directory as GDK_HOME
   --with-freemarker-jar   path to freemarker.jar (used to build OpenJ9 build
@@ -5249,8 +5253,10 @@ VS_SDK_PLATFORM_NAME_2013=
 
 
 
+
+
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1522342326
+DATE_WHEN_GENERATED=1523293808
 
 ###############################################################################
 #
@@ -17149,6 +17155,9 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
 
 # With basic setup done, call the custom early hook.
 
+  # When compiling natively host_cpu and build_cpu are the same. But when
+  # cross compiling we need to work with the host_cpu (which is where the final
+  # JVM will run).
 
   # Convert openjdk cpu names to openj9 names
   case "$host_cpu" in
@@ -17164,6 +17173,9 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
     powerpc64)
       OPENJ9_CPU=ppc-64
       ;;
+    arm)
+      OPENJ9_CPU=arm
+      ;;
     *)
       as_fn_error $? "unsupported OpenJ9 cpu $host_cpu" "$LINENO" 5
       ;;
@@ -17178,6 +17190,9 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
     elif test "x$OPENJDK_BUILD_OS" = xwindows; then
       OPENJ9_PLATFORM_CODE=wa64
       OPENJ9_BUILDSPEC="win_x86-64_cmprssptrs"
+    elif test "x$OPENJDK_BUILD_OS" = xmacosx; then
+      OPENJ9_PLATFORM_CODE=oa64
+      OPENJ9_BUILDSPEC="osx_x86-64"
     else
       as_fn_error $? "Unsupported OpenJ9 platform ${OPENJDK_BUILD_OS}, contact support team!" "$LINENO" 5
     fi
@@ -17188,6 +17203,10 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
     OPENJ9_PLATFORM_CODE=xz64
   elif test "x$OPENJ9_CPU" = xppc-64; then
     OPENJ9_PLATFORM_CODE=ap64
+  elif test "x$OPENJ9_CPU" = xarm; then
+    OPENJ9_PLATFORM_CODE=xr32
+    OPENJ9_BUILDSPEC=linux_arm_linaro
+    OPENJ9_LIBS_SUBDIR=default
   else
     as_fn_error $? "Unsupported OpenJ9 cpu ${OPENJ9_CPU}, contact support team!" "$LINENO" 5
   fi
@@ -17199,8 +17218,12 @@ $as_echo "$as_me: Unknown variant(s) specified: $INVALID_VARIANTS" >&6;}
 
 
   OPENJDK_SHA=`git -C $TOPDIR rev-parse --short HEAD`
-  OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags --match "jdk-10*" "${OPENJDK_SHA}"`
-
+  LAST_TAGGED_SHA=`git -C $TOPDIR rev-list --tags="jdk-10*" --max-count=1 2>/dev/null`
+  if test "x$LAST_TAGGED_SHA" != x; then
+    OPENJDK_TAG=`git -C $TOPDIR describe --abbrev=0 --tags "$LAST_TAGGED_SHA"`
+  else
+    OPENJDK_TAG=
+  fi
 
 
 
@@ -17310,8 +17333,14 @@ $as_echo "no" >&6; }
 
 
 
-  JAVA_BASE_LDFLAGS="${JAVA_BASE_LDFLAGS} -L\$(SUPPORT_OUTPUTDIR)/../vm"
-  OPENJDK_BUILD_JAVA_BASE_LDFLAGS="${OPENJDK_BUILD_JAVA_BASE_LDFLAGS} -L\$(SUPPORT_OUTPUTDIR)/../vm"
+ if test "x$OPENJDK_BUILD_OS_ENV" = xwindows.cygwin; then
+    JAVA_BASE_LDFLAGS="${JAVA_BASE_LDFLAGS} -libpath:\$(SUPPORT_OUTPUTDIR)/../vm/lib"
+    OPENJDK_BUILD_JAVA_BASE_LDFLAGS="${OPENJDK_BUILD_JAVA_BASE_LDFLAGS} -libpath:\$(SUPPORT_OUTPUTDIR)/../vm/lib"
+  else
+    JAVA_BASE_LDFLAGS="${JAVA_BASE_LDFLAGS} -L\$(SUPPORT_OUTPUTDIR)/../vm"
+    OPENJDK_BUILD_JAVA_BASE_LDFLAGS="${OPENJDK_BUILD_JAVA_BASE_LDFLAGS} -L\$(SUPPORT_OUTPUTDIR)/../vm"
+  fi
+
 
   # Where are the OpenJ9 sources.
   OPENJ9OMR_TOPDIR="$TOPDIR/omr"
@@ -17534,6 +17563,70 @@ $as_echo "$tool_specified" >&6; }
 
 
 
+
+
+
+
+# Check whether --with-cmake was given.
+if test "${with_cmake+set}" = set; then :
+  withval=$with_cmake;
+			if test "x$with_cmake" != "x"; then
+				CMAKE=$with_cmake
+			fi
+			with_cmake=yes
+
+else
+  with_cmake=no
+fi
+
+	if test "$with_cmake" == "yes"; then
+		# Extract the first word of "cmake", so it can be a program name with args.
+set dummy cmake; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CMAKE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CMAKE in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CMAKE="$CMAKE" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CMAKE="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CMAKE=$ac_cv_path_CMAKE
+if test -n "$CMAKE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CMAKE" >&5
+$as_echo "$CMAKE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+		if test "x$CMAKE" == x; then
+			as_fn_error $? "Could not find CMake" "$LINENO" 5
+		fi
+		OPENJ9_ENABLE_CMAKE=true
+	else
+		OPENJ9_ENABLE_CMAKE=false
+	fi
 
 
 
@@ -64052,348 +64145,6 @@ $as_echo "$FREETYPE_LIB_PATH" >&6; }
 
   POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_BASE_DIR/include"
   POTENTIAL_FREETYPE_LIB_PATH="$FREETYPE_BASE_DIR/lib"
-  METHOD="well-known location"
-
-  # Let's start with an optimistic view of the world :-)
-  FOUND_FREETYPE=yes
-
-  # First look for the canonical freetype main include file ft2build.h.
-  if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
-    # Oh no! Let's try in the freetype2 directory. This is needed at least at Mac OS X Yosemite.
-    POTENTIAL_FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH/freetype2"
-    if ! test -s "$POTENTIAL_FREETYPE_INCLUDE_PATH/ft2build.h"; then
-      # Fail.
-      FOUND_FREETYPE=no
-    fi
-  fi
-
-  if test "x$FOUND_FREETYPE" = xyes; then
-    # Include file found, let's continue the sanity check.
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&5
-$as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
-
-    # Reset to default value
-    FREETYPE_BASE_NAME=freetype
-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}${FREETYPE_BASE_NAME}${SHARED_LIBRARY_SUFFIX}"
-    if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
-      if test "x$OPENJDK_TARGET_OS" = xmacosx \
-          && test -s "$POTENTIAL_FREETYPE_LIB_PATH/${LIBRARY_PREFIX}freetype.6${SHARED_LIBRARY_SUFFIX}"; then
-        # On Mac OS X Yosemite, the symlink from libfreetype.dylib to libfreetype.6.dylib disappeared. Check
-        # for the .6 version explicitly.
-        FREETYPE_BASE_NAME=freetype.6
-        FREETYPE_LIB_NAME="${LIBRARY_PREFIX}${FREETYPE_BASE_NAME}${SHARED_LIBRARY_SUFFIX}"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Compensating for missing symlink by using version 6 explicitly" >&5
-$as_echo "$as_me: Compensating for missing symlink by using version 6 explicitly" >&6;}
-      else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
-$as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
-        FOUND_FREETYPE=no
-      fi
-    else
-      if test "x$OPENJDK_TARGET_OS" = xwindows; then
-        # On Windows, we will need both .lib and .dll file.
-        if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/${FREETYPE_BASE_NAME}.lib"; then
-          { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/${FREETYPE_BASE_NAME}.lib. Ignoring location." >&5
-$as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/${FREETYPE_BASE_NAME}.lib. Ignoring location." >&6;}
-          FOUND_FREETYPE=no
-        fi
-      elif test "x$OPENJDK_TARGET_OS" = xsolaris \
-          && test -s "$POTENTIAL_FREETYPE_LIB_PATH$OPENJDK_TARGET_CPU_ISADIR/$FREETYPE_LIB_NAME"; then
-        # Found lib in isa dir, use that instead.
-        POTENTIAL_FREETYPE_LIB_PATH="$POTENTIAL_FREETYPE_LIB_PATH$OPENJDK_TARGET_CPU_ISADIR"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Rewriting to use $POTENTIAL_FREETYPE_LIB_PATH instead" >&5
-$as_echo "$as_me: Rewriting to use $POTENTIAL_FREETYPE_LIB_PATH instead" >&6;}
-      fi
-    fi
-  fi
-
-  if test "x$FOUND_FREETYPE" = xyes; then
-
-  # Only process if variable expands to non-empty
-
-  if test "x$POTENTIAL_FREETYPE_INCLUDE_PATH" != x; then
-    if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin"; then
-
-  # Input might be given as Windows format, start by converting to
-  # unix format.
-  path="$POTENTIAL_FREETYPE_INCLUDE_PATH"
-  new_path=`$CYGPATH -u "$path"`
-
-  # Cygwin tries to hide some aspects of the Windows file system, such that binaries are
-  # named .exe but called without that suffix. Therefore, "foo" and "foo.exe" are considered
-  # the same file, most of the time (as in "test -f"). But not when running cygpath -s, then
-  # "foo.exe" is OK but "foo" is an error.
-  #
-  # This test is therefore slightly more accurate than "test -f" to check for file precense.
-  # It is also a way to make sure we got the proper file name for the real test later on.
-  test_shortpath=`$CYGPATH -s -m "$new_path" 2> /dev/null`
-  if test "x$test_shortpath" = x; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: The path of POTENTIAL_FREETYPE_INCLUDE_PATH, which resolves as \"$path\", is invalid." >&5
-$as_echo "$as_me: The path of POTENTIAL_FREETYPE_INCLUDE_PATH, which resolves as \"$path\", is invalid." >&6;}
-    as_fn_error $? "Cannot locate the the path of POTENTIAL_FREETYPE_INCLUDE_PATH" "$LINENO" 5
-  fi
-
-  # Call helper function which possibly converts this using DOS-style short mode.
-  # If so, the updated path is stored in $new_path.
-
-  input_path="$new_path"
-  # Check if we need to convert this using DOS-style short mode. If the path
-  # contains just simple characters, use it. Otherwise (spaces, weird characters),
-  # take no chances and rewrite it.
-  # Note: m4 eats our [], so we need to use [ and ] instead.
-  has_forbidden_chars=`$ECHO "$input_path" | $GREP [^-._/a-zA-Z0-9]`
-  if test "x$has_forbidden_chars" != x; then
-    # Now convert it to mixed DOS-style, short mode (no spaces, and / instead of \)
-    shortmode_path=`$CYGPATH -s -m -a "$input_path"`
-    path_after_shortmode=`$CYGPATH -u "$shortmode_path"`
-    if test "x$path_after_shortmode" != "x$input_to_shortpath"; then
-      # Going to short mode and back again did indeed matter. Since short mode is
-      # case insensitive, let's make it lowercase to improve readability.
-      shortmode_path=`$ECHO "$shortmode_path" | $TR 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
-      # Now convert it back to Unix-style (cygpath)
-      input_path=`$CYGPATH -u "$shortmode_path"`
-      new_path="$input_path"
-    fi
-  fi
-
-  test_cygdrive_prefix=`$ECHO $input_path | $GREP ^/cygdrive/`
-  if test "x$test_cygdrive_prefix" = x; then
-    # As a simple fix, exclude /usr/bin since it's not a real path.
-    if test "x`$ECHO $new_path | $GREP ^/usr/bin/`" = x; then
-      # The path is in a Cygwin special directory (e.g. /home). We need this converted to
-      # a path prefixed by /cygdrive for fixpath to work.
-      new_path="$CYGWIN_ROOT_PATH$input_path"
-    fi
-  fi
-
-
-  if test "x$path" != "x$new_path"; then
-    POTENTIAL_FREETYPE_INCLUDE_PATH="$new_path"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Rewriting POTENTIAL_FREETYPE_INCLUDE_PATH to \"$new_path\"" >&5
-$as_echo "$as_me: Rewriting POTENTIAL_FREETYPE_INCLUDE_PATH to \"$new_path\"" >&6;}
-  fi
-
-    elif test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys"; then
-
-  path="$POTENTIAL_FREETYPE_INCLUDE_PATH"
-  has_colon=`$ECHO $path | $GREP ^.:`
-  new_path="$path"
-  if test "x$has_colon" = x; then
-    # Not in mixed or Windows style, start by that.
-    new_path=`cmd //c echo $path`
-  fi
-
-
-  input_path="$new_path"
-  # Check if we need to convert this using DOS-style short mode. If the path
-  # contains just simple characters, use it. Otherwise (spaces, weird characters),
-  # take no chances and rewrite it.
-  # Note: m4 eats our [], so we need to use [ and ] instead.
-  has_forbidden_chars=`$ECHO "$input_path" | $GREP [^-_/:a-zA-Z0-9]`
-  if test "x$has_forbidden_chars" != x; then
-    # Now convert it to mixed DOS-style, short mode (no spaces, and / instead of \)
-    new_path=`cmd /c "for %A in (\"$input_path\") do @echo %~sA"|$TR \\\\\\\\ / | $TR 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
-  fi
-
-
-  windows_path="$new_path"
-  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin"; then
-    unix_path=`$CYGPATH -u "$windows_path"`
-    new_path="$unix_path"
-  elif test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys"; then
-    unix_path=`$ECHO "$windows_path" | $SED -e 's,^\\(.\\):,/\\1,g' -e 's,\\\\,/,g'`
-    new_path="$unix_path"
-  fi
-
-  if test "x$path" != "x$new_path"; then
-    POTENTIAL_FREETYPE_INCLUDE_PATH="$new_path"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Rewriting POTENTIAL_FREETYPE_INCLUDE_PATH to \"$new_path\"" >&5
-$as_echo "$as_me: Rewriting POTENTIAL_FREETYPE_INCLUDE_PATH to \"$new_path\"" >&6;}
-  fi
-
-  # Save the first 10 bytes of this path to the storage, so fixpath can work.
-  all_fixpath_prefixes=("${all_fixpath_prefixes[@]}" "${new_path:0:10}")
-
-    else
-      # We're on a unix platform. Hooray! :)
-      path="$POTENTIAL_FREETYPE_INCLUDE_PATH"
-      has_space=`$ECHO "$path" | $GREP " "`
-      if test "x$has_space" != x; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: The path of POTENTIAL_FREETYPE_INCLUDE_PATH, which resolves as \"$path\", is invalid." >&5
-$as_echo "$as_me: The path of POTENTIAL_FREETYPE_INCLUDE_PATH, which resolves as \"$path\", is invalid." >&6;}
-        as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
-      fi
-
-      # Use eval to expand a potential ~
-      eval path="$path"
-      if test ! -f "$path" && test ! -d "$path"; then
-        as_fn_error $? "The path of POTENTIAL_FREETYPE_INCLUDE_PATH, which resolves as \"$path\", is not found." "$LINENO" 5
-      fi
-
-      if test -d "$path"; then
-        POTENTIAL_FREETYPE_INCLUDE_PATH="`cd "$path"; $THEPWDCMD -L`"
-      else
-        dir="`$DIRNAME "$path"`"
-        base="`$BASENAME "$path"`"
-        POTENTIAL_FREETYPE_INCLUDE_PATH="`cd "$dir"; $THEPWDCMD -L`/$base"
-      fi
-    fi
-  fi
-
-
-  # Only process if variable expands to non-empty
-
-  if test "x$POTENTIAL_FREETYPE_LIB_PATH" != x; then
-    if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin"; then
-
-  # Input might be given as Windows format, start by converting to
-  # unix format.
-  path="$POTENTIAL_FREETYPE_LIB_PATH"
-  new_path=`$CYGPATH -u "$path"`
-
-  # Cygwin tries to hide some aspects of the Windows file system, such that binaries are
-  # named .exe but called without that suffix. Therefore, "foo" and "foo.exe" are considered
-  # the same file, most of the time (as in "test -f"). But not when running cygpath -s, then
-  # "foo.exe" is OK but "foo" is an error.
-  #
-  # This test is therefore slightly more accurate than "test -f" to check for file precense.
-  # It is also a way to make sure we got the proper file name for the real test later on.
-  test_shortpath=`$CYGPATH -s -m "$new_path" 2> /dev/null`
-  if test "x$test_shortpath" = x; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: The path of POTENTIAL_FREETYPE_LIB_PATH, which resolves as \"$path\", is invalid." >&5
-$as_echo "$as_me: The path of POTENTIAL_FREETYPE_LIB_PATH, which resolves as \"$path\", is invalid." >&6;}
-    as_fn_error $? "Cannot locate the the path of POTENTIAL_FREETYPE_LIB_PATH" "$LINENO" 5
-  fi
-
-  # Call helper function which possibly converts this using DOS-style short mode.
-  # If so, the updated path is stored in $new_path.
-
-  input_path="$new_path"
-  # Check if we need to convert this using DOS-style short mode. If the path
-  # contains just simple characters, use it. Otherwise (spaces, weird characters),
-  # take no chances and rewrite it.
-  # Note: m4 eats our [], so we need to use [ and ] instead.
-  has_forbidden_chars=`$ECHO "$input_path" | $GREP [^-._/a-zA-Z0-9]`
-  if test "x$has_forbidden_chars" != x; then
-    # Now convert it to mixed DOS-style, short mode (no spaces, and / instead of \)
-    shortmode_path=`$CYGPATH -s -m -a "$input_path"`
-    path_after_shortmode=`$CYGPATH -u "$shortmode_path"`
-    if test "x$path_after_shortmode" != "x$input_to_shortpath"; then
-      # Going to short mode and back again did indeed matter. Since short mode is
-      # case insensitive, let's make it lowercase to improve readability.
-      shortmode_path=`$ECHO "$shortmode_path" | $TR 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
-      # Now convert it back to Unix-style (cygpath)
-      input_path=`$CYGPATH -u "$shortmode_path"`
-      new_path="$input_path"
-    fi
-  fi
-
-  test_cygdrive_prefix=`$ECHO $input_path | $GREP ^/cygdrive/`
-  if test "x$test_cygdrive_prefix" = x; then
-    # As a simple fix, exclude /usr/bin since it's not a real path.
-    if test "x`$ECHO $new_path | $GREP ^/usr/bin/`" = x; then
-      # The path is in a Cygwin special directory (e.g. /home). We need this converted to
-      # a path prefixed by /cygdrive for fixpath to work.
-      new_path="$CYGWIN_ROOT_PATH$input_path"
-    fi
-  fi
-
-
-  if test "x$path" != "x$new_path"; then
-    POTENTIAL_FREETYPE_LIB_PATH="$new_path"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Rewriting POTENTIAL_FREETYPE_LIB_PATH to \"$new_path\"" >&5
-$as_echo "$as_me: Rewriting POTENTIAL_FREETYPE_LIB_PATH to \"$new_path\"" >&6;}
-  fi
-
-    elif test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys"; then
-
-  path="$POTENTIAL_FREETYPE_LIB_PATH"
-  has_colon=`$ECHO $path | $GREP ^.:`
-  new_path="$path"
-  if test "x$has_colon" = x; then
-    # Not in mixed or Windows style, start by that.
-    new_path=`cmd //c echo $path`
-  fi
-
-
-  input_path="$new_path"
-  # Check if we need to convert this using DOS-style short mode. If the path
-  # contains just simple characters, use it. Otherwise (spaces, weird characters),
-  # take no chances and rewrite it.
-  # Note: m4 eats our [], so we need to use [ and ] instead.
-  has_forbidden_chars=`$ECHO "$input_path" | $GREP [^-_/:a-zA-Z0-9]`
-  if test "x$has_forbidden_chars" != x; then
-    # Now convert it to mixed DOS-style, short mode (no spaces, and / instead of \)
-    new_path=`cmd /c "for %A in (\"$input_path\") do @echo %~sA"|$TR \\\\\\\\ / | $TR 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
-  fi
-
-
-  windows_path="$new_path"
-  if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.cygwin"; then
-    unix_path=`$CYGPATH -u "$windows_path"`
-    new_path="$unix_path"
-  elif test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.msys"; then
-    unix_path=`$ECHO "$windows_path" | $SED -e 's,^\\(.\\):,/\\1,g' -e 's,\\\\,/,g'`
-    new_path="$unix_path"
-  fi
-
-  if test "x$path" != "x$new_path"; then
-    POTENTIAL_FREETYPE_LIB_PATH="$new_path"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Rewriting POTENTIAL_FREETYPE_LIB_PATH to \"$new_path\"" >&5
-$as_echo "$as_me: Rewriting POTENTIAL_FREETYPE_LIB_PATH to \"$new_path\"" >&6;}
-  fi
-
-  # Save the first 10 bytes of this path to the storage, so fixpath can work.
-  all_fixpath_prefixes=("${all_fixpath_prefixes[@]}" "${new_path:0:10}")
-
-    else
-      # We're on a unix platform. Hooray! :)
-      path="$POTENTIAL_FREETYPE_LIB_PATH"
-      has_space=`$ECHO "$path" | $GREP " "`
-      if test "x$has_space" != x; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: The path of POTENTIAL_FREETYPE_LIB_PATH, which resolves as \"$path\", is invalid." >&5
-$as_echo "$as_me: The path of POTENTIAL_FREETYPE_LIB_PATH, which resolves as \"$path\", is invalid." >&6;}
-        as_fn_error $? "Spaces are not allowed in this path." "$LINENO" 5
-      fi
-
-      # Use eval to expand a potential ~
-      eval path="$path"
-      if test ! -f "$path" && test ! -d "$path"; then
-        as_fn_error $? "The path of POTENTIAL_FREETYPE_LIB_PATH, which resolves as \"$path\", is not found." "$LINENO" 5
-      fi
-
-      if test -d "$path"; then
-        POTENTIAL_FREETYPE_LIB_PATH="`cd "$path"; $THEPWDCMD -L`"
-      else
-        dir="`$DIRNAME "$path"`"
-        base="`$BASENAME "$path"`"
-        POTENTIAL_FREETYPE_LIB_PATH="`cd "$dir"; $THEPWDCMD -L`/$base"
-      fi
-    fi
-  fi
-
-
-    FREETYPE_INCLUDE_PATH="$POTENTIAL_FREETYPE_INCLUDE_PATH"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype includes" >&5
-$as_echo_n "checking for freetype includes... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_INCLUDE_PATH" >&5
-$as_echo "$FREETYPE_INCLUDE_PATH" >&6; }
-    FREETYPE_LIB_PATH="$POTENTIAL_FREETYPE_LIB_PATH"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype libraries" >&5
-$as_echo_n "checking for freetype libraries... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FREETYPE_LIB_PATH" >&5
-$as_echo "$FREETYPE_LIB_PATH" >&6; }
-  fi
-
-            fi
-          fi
-
-          if test "x$FOUND_FREETYPE" != xyes; then
-            FREETYPE_BASE_DIR="$SYSROOT/usr"
-            if test "x$OPENJDK_TARGET_CPU_ARCH" = xs390; then
-
-  POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_BASE_DIR/include"
-  POTENTIAL_FREETYPE_LIB_PATH="$FREETYPE_BASE_DIR/lib/s390x-linux-gnu"
   METHOD="well-known location"
 
   # Let's start with an optimistic view of the world :-)
