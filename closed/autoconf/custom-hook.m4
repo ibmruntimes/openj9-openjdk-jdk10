@@ -193,13 +193,21 @@ AC_DEFUN_ONCE([OPENJ9_PLATFORM_SETUP],
   AC_ARG_WITH(noncompressedrefs, [AS_HELP_STRING([--with-noncompressedrefs],
       [build non-compressedrefs vm (large heap)])])
 
+  AC_ARG_WITH(valhalla_nestmates, [AS_HELP_STRING([--with-valhalla_nestmates],[build with valhalla nestmates spec])])
+
+  if test "x$with_valhalla_nestmates" != x; then
+    EXTENDED_SPEC="_valhalla_nestmates"
+  else
+    EXTENDED_SPEC=""
+  fi
+
   # When compiling natively host_cpu and build_cpu are the same. But when
   # cross compiling we need to work with the host_cpu (which is where the final
   # JVM will run).
   OPENJ9_PLATFORM_EXTRACT_VARS_FROM_CPU($host_cpu)
 
   if test "x$with_noncompressedrefs" = x; then
-    OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}_cmprssptrs"
+    OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}_cmprssptrs${EXTENDED_SPEC}"
     OPENJ9_LIBS_SUBDIR=compressedrefs
   else
     OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}"
@@ -227,7 +235,7 @@ AC_DEFUN_ONCE([OPENJ9_PLATFORM_SETUP],
     if test "x$OPENJ9_LIBS_SUBDIR" = xdefault; then
       OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_le_gcc"
     else
-      OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_cmprssptrs_le_gcc"
+      OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_cmprssptrs_le_gcc${EXTENDED_SPEC}"
     fi
   elif test "x$OPENJ9_CPU" = x390-64; then
     OPENJ9_PLATFORM_CODE=xz64

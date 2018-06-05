@@ -1142,6 +1142,7 @@ with_debug_level
 with_jvm_variants
 with_cpu_port
 with_noncompressedrefs
+with_valhalla_nestmates
 with_cmake
 with_cuda
 with_gdk
@@ -2072,6 +2073,8 @@ Optional Packages:
                           (arm64,aarch64) [aarch64]
   --with-noncompressedrefs
                           build non-compressedrefs vm (large heap)
+  --with-valhalla_nestmates
+                          build with valhalla nestmates spec
   --with-cmake            enable building openJ9 with CMake
   --with-cuda             use this directory as CUDA_HOME
   --with-gdk              use this directory as GDK_HOME
@@ -5259,7 +5262,7 @@ VS_SDK_PLATFORM_NAME_2013=
 
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1525354417
+DATE_WHEN_GENERATED=1528225052
 
 ###############################################################################
 #
@@ -17165,6 +17168,18 @@ if test "${with_noncompressedrefs+set}" = set; then :
 fi
 
 
+# Check whether --with-valhalla_nestmates was given.
+if test "${with_valhalla_nestmates+set}" = set; then :
+  withval=$with_valhalla_nestmates;
+fi
+
+
+  if test "x$with_valhalla_nestmates" != x; then
+    EXTENDED_SPEC="_valhalla_nestmates"
+  else
+    EXTENDED_SPEC=""
+  fi
+
   # When compiling natively host_cpu and build_cpu are the same. But when
   # cross compiling we need to work with the host_cpu (which is where the final
   # JVM will run).
@@ -17193,7 +17208,7 @@ fi
 
 
   if test "x$with_noncompressedrefs" = x; then
-    OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}_cmprssptrs"
+    OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}_cmprssptrs${EXTENDED_SPEC}"
     OPENJ9_LIBS_SUBDIR=compressedrefs
   else
     OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_${OPENJ9_CPU}"
@@ -17221,7 +17236,7 @@ fi
     if test "x$OPENJ9_LIBS_SUBDIR" = xdefault; then
       OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_le_gcc"
     else
-      OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_cmprssptrs_le_gcc"
+      OPENJ9_BUILDSPEC="${OPENJDK_BUILD_OS}_ppc-64_cmprssptrs_le_gcc${EXTENDED_SPEC}"
     fi
   elif test "x$OPENJ9_CPU" = x390-64; then
     OPENJ9_PLATFORM_CODE=xz64
