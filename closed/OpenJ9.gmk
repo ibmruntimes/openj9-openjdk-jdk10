@@ -378,7 +378,7 @@ $(OUTPUTDIR)/vm/include/openj9_version_info.h : $(TOPDIR)/closed/openj9_version_
 	@$(SED) $(OPENJ9_VERSION_SCRIPT) > $@ < $<
 
 # capture values for use with DependOnVariable
-OPENJ9_VERSION_MAP := $(foreach var,$(sort $(OPENJ9_VERSION_VARS)),$(var)='$(value $(var))'))
+OPENJ9_VERSION_MAP := $(foreach var,$(sort $(OPENJ9_VERSION_VARS)),$(var)='$(value $(var))')
 
 # update if the map changes
 $(OUTPUTDIR)/vm/include/openj9_version_info.h : $(call DependOnVariable,OPENJ9_VERSION_MAP)
