@@ -4210,8 +4210,8 @@ cygwin_help() {
 The freetype library can now be build during the configure process.
 Download the freetype sources and unpack them into an arbitrary directory:
 
-wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
-tar -xzf freetype-2.9.1.tar.gz
+wget http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz
+tar -xzf freetype-2.5.3.tar.gz
 
 Then run configure with '--with-freetype-src=<freetype_src>'. This will
 automatically build the freetype library into '<freetype_src>/lib64' for 64-bit
@@ -4221,7 +4221,7 @@ and '--with-freetype-lib=<freetype_src>/lib32|64' for other builds.
 
 Alternatively you can unpack the sources like this to use the default directory:
 
-tar --one-top-level=$HOME/freetype --strip-components=1 -xzf freetype-2.9.1.tar.gz"
+tar --one-top-level=$HOME/freetype --strip-components=1 -xzf freetype-2.5.3.tar.gz"
       ;;
   esac
 }
@@ -5263,7 +5263,7 @@ VS_SDK_PLATFORM_NAME_2013=
 
 
 # Do not change or remove the following line, it is needed for consistency checks:
-DATE_WHEN_GENERATED=1538693319
+DATE_WHEN_GENERATED=1528998675
 
 ###############################################################################
 #
@@ -17169,7 +17169,6 @@ if test "${with_noncompressedrefs+set}" = set; then :
 fi
 
 
-
 # Check whether --with-valhalla_nestmates was given.
 if test "${with_valhalla_nestmates+set}" = set; then :
   withval=$with_valhalla_nestmates;
@@ -17231,7 +17230,7 @@ fi
       OPENJ9_PLATFORM_CODE=oa64
       OPENJ9_BUILDSPEC="osx_x86-64"
     else
-      as_fn_error $? "Unsupported OpenJ9 platform ${OPENJDK_BUILD_OS}!" "$LINENO" 5
+      as_fn_error $? "Unsupported OpenJ9 platform ${OPENJDK_BUILD_OS}, contact support team!" "$LINENO" 5
     fi
   elif test "x$OPENJ9_CPU" = xppc-64_le; then
     OPENJ9_PLATFORM_CODE=xl64
@@ -17249,7 +17248,7 @@ fi
     OPENJ9_BUILDSPEC=linux_arm_linaro
     OPENJ9_LIBS_SUBDIR=default
   else
-    as_fn_error $? "Unsupported OpenJ9 cpu ${OPENJ9_CPU}!" "$LINENO" 5
+    as_fn_error $? "Unsupported OpenJ9 cpu ${OPENJ9_CPU}, contact support team!" "$LINENO" 5
   fi
 
 
@@ -17259,7 +17258,7 @@ fi
 
 
   OPENJDK_SHA=`git -C $TOPDIR rev-parse --short HEAD`
-  LAST_TAGGED_SHA=`git -C $TOPDIR rev-list --tags="jdk-10*" --topo-order --max-count=1 2>/dev/null`
+  LAST_TAGGED_SHA=`git -C $TOPDIR rev-list --tags="jdk-10*" --max-count=1 2>/dev/null`
   if test "x$LAST_TAGGED_SHA" != x; then
     OPENJDK_TAG=`git -C $TOPDIR describe --tags "$LAST_TAGGED_SHA"`
   else
@@ -17393,7 +17392,6 @@ $as_echo "no" >&6; }
   if ! test -d "$OPENJ9OMR_TOPDIR" ; then
     as_fn_error $? "\"Cannot locate the path to OMR sources: $OPENJ9OMR_TOPDIR! Try 'bash get_source.sh' and restart configure\"" "$LINENO" 5
   fi
-
 
 
 
@@ -17744,7 +17742,7 @@ $as_echo "no (explicitly disabled)" >&6; }
     OPENJ9_ENABLE_DDR=false
   elif test "x$enable_ddr" = x ; then
     case "$OPENJ9_PLATFORM_CODE" in
-      ap64|wa64|xa64|xl64|xz64)
+      wa64|xa64|xl64|xz64)
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes (default for $OPENJ9_PLATFORM_CODE)" >&5
 $as_echo "yes (default for $OPENJ9_PLATFORM_CODE)" >&6; }
         OPENJ9_ENABLE_DDR=true
@@ -60115,7 +60113,7 @@ $as_echo "$as_me: Trying to compile freetype sources with PlatformToolset=$PLATF
     $ECHO -e "@echo off\n"\
         "$MSBUILD $vcxproj_path "\
         "/p:PlatformToolset=$PLATFORM_TOOLSET "\
-        "/p:Configuration=\"Release\" "\
+        "/p:Configuration=\"Release Multithreaded\" "\
         "/p:Platform=$freetype_platform "\
         "/p:ConfigurationType=DynamicLibrary "\
         "/p:TargetName=freetype "\
@@ -60124,7 +60122,20 @@ $as_echo "$as_me: Trying to compile freetype sources with PlatformToolset=$PLATF
     cmd /c freetype.bat
 
     if test -s "$freetype_lib_path_unix/freetype.dll"; then
+      # If that succeeds we also build freetype.lib
+      $ECHO -e "@echo off\n"\
+          "$MSBUILD $vcxproj_path "\
+          "/p:PlatformToolset=$PLATFORM_TOOLSET "\
+          "/p:Configuration=\"Release Multithreaded\" "\
+          "/p:Platform=$freetype_platform "\
+          "/p:ConfigurationType=StaticLibrary "\
+          "/p:TargetName=freetype "\
+          "/p:OutDir=\"$freetype_lib_path\" "\
+          "/p:IntDir=\"$freetype_obj_path\" >> freetype.log" > freetype.bat
+      cmd /c freetype.bat
+
       if test -s "$freetype_lib_path_unix/freetype.lib"; then
+        # Once we build both, lib and dll, set freetype lib and include path appropriately
         POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_SRC_PATH/include"
         POTENTIAL_FREETYPE_LIB_PATH="$freetype_lib_path_unix"
         { $as_echo "$as_me:${as_lineno-$LINENO}: Compiling freetype sources succeeded! (see freetype.log for build results)" >&5
@@ -62436,7 +62447,7 @@ $as_echo "$as_me: Trying to compile freetype sources with PlatformToolset=$PLATF
     $ECHO -e "@echo off\n"\
         "$MSBUILD $vcxproj_path "\
         "/p:PlatformToolset=$PLATFORM_TOOLSET "\
-        "/p:Configuration=\"Release\" "\
+        "/p:Configuration=\"Release Multithreaded\" "\
         "/p:Platform=$freetype_platform "\
         "/p:ConfigurationType=DynamicLibrary "\
         "/p:TargetName=freetype "\
@@ -62445,7 +62456,20 @@ $as_echo "$as_me: Trying to compile freetype sources with PlatformToolset=$PLATF
     cmd /c freetype.bat
 
     if test -s "$freetype_lib_path_unix/freetype.dll"; then
+      # If that succeeds we also build freetype.lib
+      $ECHO -e "@echo off\n"\
+          "$MSBUILD $vcxproj_path "\
+          "/p:PlatformToolset=$PLATFORM_TOOLSET "\
+          "/p:Configuration=\"Release Multithreaded\" "\
+          "/p:Platform=$freetype_platform "\
+          "/p:ConfigurationType=StaticLibrary "\
+          "/p:TargetName=freetype "\
+          "/p:OutDir=\"$freetype_lib_path\" "\
+          "/p:IntDir=\"$freetype_obj_path\" >> freetype.log" > freetype.bat
+      cmd /c freetype.bat
+
       if test -s "$freetype_lib_path_unix/freetype.lib"; then
+        # Once we build both, lib and dll, set freetype lib and include path appropriately
         POTENTIAL_FREETYPE_INCLUDE_PATH="$FREETYPE_SRC_PATH/include"
         POTENTIAL_FREETYPE_LIB_PATH="$freetype_lib_path_unix"
         { $as_echo "$as_me:${as_lineno-$LINENO}: Compiling freetype sources succeeded! (see freetype.log for build results)" >&5
@@ -68138,7 +68162,7 @@ $as_echo_n "checking flags for boot jdk java command for big workloads... " >&6;
   BOOTCYCLE_JVM_ARGS_BIG=-Xms64M
 
   # Maximum amount of heap memory and stack size.
-  JVM_HEAP_LIMIT_32="768"
+  JVM_HEAP_LIMIT_32="1024"
   # Running a 64 bit JVM allows for and requires a bigger heap
   JVM_HEAP_LIMIT_64="1600"
   STACK_SIZE_32=768
